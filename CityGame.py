@@ -1,9 +1,29 @@
-
+import json
 from cities import cities_list
 
 # Мы можем перепаковать города в сет
 cities_set = {city['name'] for city in cities_list}
 
+class JsonFile:
+    def __init__(self, file_path):
+        self.file_path = file_path
+    def read_data(self):
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+            return data
+        except FileNotFoundError:
+            print(f"Файл {self.file_path} не найден")
+            return None
+        except json.JSONDecodeError:
+            print(f"ошибка расшифровки JSON данных из файла {self.file_path}")
+            return None
+    def write_data(self):
+        try:
+            with open(self.file_path, "w", encoding="utf-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+        except IOError as e:
+            print(f"Ошибка записи в {self.file_path}: {e}")
 
 # Собираем сет "плохих букв"
 bad_letters = set()
