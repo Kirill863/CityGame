@@ -1,7 +1,7 @@
 import json
 from cities import cities_list
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Set
 
 # Мы можем перепаковать города в сет
 cities_set = {city['name'] for city in cities_list}
@@ -50,69 +50,70 @@ class CitiesSerializer:
 
 
 
-# Собираем сет "плохих букв"
-bad_letters = set()
-iter_count = 0
-# Внешний цикл для обхода последних букв
-for letter in sym_lower_set:
-    # Вложенный цикл для обхода первых букв
-    for city_2 in cities_set:
-        first_letter = city_2[0]
-        iter_count += 1
-        if letter.lower() == first_letter.lower():
-            # Что происходит, если они равны? Это хорошая буква
-            break
-    else:
-        # Если мы обошли весь сет и ни одно слово не начинается с нашей буквы - букву заносим как "плохую"
-        bad_letters.add(letter)
+class CityGame:
+    def __init__(self, cities_serializer):
+        self.cities_serializer = cities_serializer
+        self.cities_set = {city.name for city in cities_serializer.get_all_cities()}
+        self.bad_letters = self.calculate_bad_letters()
+        self.computer_city = ''
 
-print(bad_letters)
-print(iter_count)
+    def calculate_bad_letters(self) -> Set[str]:
+        bad_letters = set()
+        sym_lower_set = {city.name[-1].lower() for city in self.cities_serializer.get_all_cities()}
+        cities_set = {city.name for city in self.cities_serializer.get_all_cities()}
+        iter_count = 0
 
-# 3. Мы можем начать писать игру
-computer_city = ''
-index = -1
+        for letter in sym_lower_set:
+            for city in cities_set:
+                first_letter = city[0]
+                iter_count += 1
+                if letter.lower() == first_letter.lower():
+                    break
+            else:
+                bad_letters.add(letter)
 
-while True:
-    # Тут 
-    # Ход человека
-    human_city = input('Введите город: ')
+        print(bad_letters)
+        print(iter_count)
+        return bad_letters
 
-    # Проверяем, что город есть в сете
-    if human_city not in cities_set:
-        print('Такого города нет. Человек проиграл.')
-        break
+    def start_game(self):
+        print("Игра началась!")
+        self.computer_turn()
 
-    # Проверяем, что город соотсветствует правилам игры.
-    # Если компьютер называл город:
-    if computer_city:
-        # Проверяем, что город начинается на последнюю букву предыдущего
-        if human_city[0].lower() != computer_city[-1].lower():
-            print('Невыполнение правил игры. Человек проиграл.')
-            break
-    
-    # Удаляем город из сета
-    cities_set.remove(human_city)
+    def human_turn(self, city_input: str):
+        if city_input not in self.cities_set:
+            print('Такого города нет. Человек проиграл.')
+            return False
 
-    # Ход компьютера
+        if self.computer_city:
+            if city_input[0].lower() != self.computer_city[-1].lower():
+                print('Невыполнение правил игры. Человек проиграл.')
+                return False
 
-    # Тут мы можем пересчитать "Плохие буквы"
+        self.cities_set.remove(city_input)
+        self.computer_turn(city_input)
+        return True
 
-    # Обходим сет и ищем подходящий город
-    for city in cities_set:
-        if city[0].lower() == human_city[-1].lower():
-            # Проверка на плохие буквы
-            if city[-1].lower() in bad_letters:
-                continue
-            # Если все хорошо, то запоминаем город
-            computer_city = city
-            print('Компьютер назвал город:', computer_city)
-            # Удаляем город из сета
-            cities_set.remove(computer_city)
-            break
-    else:
+    def computer_turn(self, human_city: str = ''):
+        for city in self.cities_set:
+            if city[0].lower() == human_city[-1].lower():
+                if city[-1].lower() in self.bad_letters:
+                    continue
+                self.computer_city = city
+                print('Компьютер назвал город:', self.computer_city)
+                self.cities_set.remove(self.computer_city)
+                return
         print('Компьютер проиграл.')
-        break
+
+    def check_game_over(self):
+        if not self.cities_set:
+            print('Игра закончена. Победил человек.')
+            return True
+        return False
+
+    def save_game_state(self):
+        # Метод для сохранения состояния игры, если необходимо
+        pass
 
 
 city_data = [
