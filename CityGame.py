@@ -1,5 +1,7 @@
 import json
 from cities import cities_list
+from dataclasses import dataclass, 
+from typing import List
 
 # Мы можем перепаковать города в сет
 cities_set = {city['name'] for city in cities_list}
@@ -24,6 +26,21 @@ class JsonFile:
                 json.dump(data, file, ensure_ascii=False, indent=4)
         except IOError as e:
             print(f"Ошибка записи в {self.file_path}: {e}")
+
+
+class CitiesSerializer:
+    def __init__(self, city_data: List[dict]):
+        self.cities = [City(**city) for city in city_data]
+    def get_all_city(self) -> List[city]:
+        return self.cities
+
+@dataclass
+class 
+
+
+
+
+
 
 # Собираем сет "плохих букв"
 bad_letters = set()
