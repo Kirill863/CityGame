@@ -1,6 +1,6 @@
 import json
 from cities import cities_list
-from dataclasses import dataclass, 
+from dataclasses import dataclass, field
 from typing import List
 
 # Мы можем перепаковать города в сет
@@ -27,6 +27,15 @@ class JsonFile:
         except IOError as e:
             print(f"Ошибка записи в {self.file_path}: {e}")
 
+@dataclass
+class City:
+    name: str
+    population: int
+    subject: str
+    district: str
+    latitude: float
+    longitude: float
+    is_used: bool = field(default=False)  
 
 class CitiesSerializer:
     def __init__(self, city_data: List[dict]):
@@ -34,8 +43,7 @@ class CitiesSerializer:
     def get_all_city(self) -> List[city]:
         return self.cities
 
-@dataclass
-class 
+ 
 
 
 
