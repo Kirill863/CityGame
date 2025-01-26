@@ -115,6 +115,27 @@ class CityGame:
         # Метод для сохранения состояния игры, если необходимо
         pass
 
+class GameManager:
+    def __init__(self, json_file: JsonFile, cities_serializer: CitiesSerializer, city_game: CityGame):
+        self.json_file = json_file
+        self.cities_serializer = cities_serializer
+        self.city_game = city_game
+
+    def __call__(self):
+        self.run_game()
+
+    def run_game(self):
+        self.city_game.start_game()
+        while True:
+            human_city = input('Введите город: ')
+            if not self.city_game.human_turn(human_city):
+                break
+            if self.city_game.check_game_over():
+                break
+        self.display_game_result()
+
+    def display_game_result(self):
+        print("Игра завершена.")
 
 city_data = [
     {
