@@ -2,6 +2,8 @@ import json
 import random
 from dataclasses import dataclass, field
 from typing import List, Set
+import tkinter as tk
+from tkinter import messagebox
 
 class JsonFile:
     """
@@ -119,6 +121,7 @@ class CityGame:
         self.cities_set = {city.name for city in cities_serializer.get_all_cities()}
         self.bad_letters = self.calculate_bad_letters()
         self.computer_city = ''
+        self.last_letter = ''
 
     def calculate_bad_letters(self) -> Set[str]:
         """
@@ -163,7 +166,7 @@ class CityGame:
             return False
 
         if self.computer_city:
-            if city_input[0].lower() != self.computer_city[-1].lower():
+            if city_input[0].lower() != self.last_letter.lower():
                 print('Невыполнение правил игры. Человек проиграл.')
                 return False
 
@@ -182,13 +185,15 @@ class CityGame:
             self.computer_city = random.choice(list(self.cities_set))
             print('Компьютер начал игру с города:', self.computer_city)
             self.cities_set.remove(self.computer_city)
+            self.last_letter = self.computer_city[-1]
             return
 
         for city in self.cities_set:
             if city[0].lower() == human_city[-1].lower():
-                if city[-1].lower() in self.bad_letters:
-                    continue
                 self.computer_city = city
+                self.last_letter = city[-1]
+                if self.last_letter.lower() in self.bad_letters:
+                    self.last_letter = city[-2]
                 print('Компьютер назвал город:', self.computer_city)
                 self.cities_set.remove(self.computer_city)
                 return
@@ -253,6 +258,53 @@ class GameManager:
         """
         print("Игра завершена.")
 
+class GameGUI:
+    """
+    Класс для графического интерфейса игры.
+    """
+
+    def __init__(self, root, city_game: CityGame):
+        """
+        Инициализатор класса GameGUI.
+
+        :param root: Основное окно tkinter.
+        :param city_game: Объект CityGame для управления игрой.
+        """
+        self.root = root
+        self.city_game = city_game
+        self.create_widgets()
+
+    def create_widgets(self):
+        """
+        Создает виджеты для графического интерфейса.
+        """
+        self.label = tk.Label(self.root, text="Введите город:")
+        self.label.pack()
+
+        self.entry = tk.Entry(self.root)
+        self.entry.pack()
+
+        self.submit_button = tk.Button(self.root, text="Отправить", command=self.human_turn)
+        self.submit_button.pack()
+
+        self.result_text = tk.Text(self.root, height=10, width=50)
+        self.result_text.pack()
+
+    def human_turn(self):
+        """
+        Обрабатывает ход человека через графический интерфейс.
+        """
+        human_city = self.entry.get()
+        if not self.city_game.human_turn(human_city):
+            messagebox.showinfo("Игра завершена", "Человек проиграл.")
+            self.root.quit()
+        else:
+            self.result_text.insert(tk.END, f"Человек: {human_city}\n")
+            self.result_text.insert(tk.END, f"Компьютер: {self.city_game.computer_city}\n")
+            if self.city_game.check_game_over():
+                messagebox.showinfo("Игра завершена", "Победил человек.")
+                self.root.quit()
+
 if __name__ == "__main__":
     # Создание экземпляра JsonFile
     json_file = JsonFile('cities.json')
@@ -267,10 +319,14 @@ if __name__ == "__main__":
         # Создание экземпляра CityGame
         city_game = CityGame(cities_serializer)
 
-        # Создание экземпляра GameManager
-        game_manager = GameManager(json_file, cities_serializer, city_game)
+        # Создание основного окна tkinter
+        root = tk.Tk()
+        root.title("Игра в города")
 
-        # Запуск игры
-        game_manager()
+        # Создание экземпляра GameGUI
+        game_gui = GameGUI(root, city_game)
+
+        # Запуск основного цикла tkinter
+        root.mainloop()
     else:
         print("Не удалось загрузить данные из файла. Игра не может быть запущена.")
