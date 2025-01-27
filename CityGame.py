@@ -69,7 +69,7 @@ class City:
         :param subject: Субъект федерации.
         :param district: Район.
         :param coords: Координаты города (широта и долгота).
-        :param is_used: Флаг, указывающий, использовался ли город в игре.
+        :param is_used: Отметка, указывающая, использовался ли город в игре.
         """
         self.name = name
         self.population = population
@@ -81,7 +81,7 @@ class City:
 
 class CitiesSerializer:
     """
-    Класс для сериализации данных о городах.
+    Класс для преоразования данных о городах.
     """
 
     def __init__(self, city_data: List[dict]):
@@ -108,14 +108,14 @@ class CitiesSerializer:
 
 class CityGame:
     """
-    Класс для управления игрой "Города".
+    Класс для управления логикой игры.
     """
 
     def __init__(self, cities_serializer: CitiesSerializer):
         """
         Инициализатор класса CityGame.
 
-        :param cities_serializer: Сериализатор данных о городах.
+        :param cities_serializer: Преобразователь данных о городах.
         """
         self.cities_serializer = cities_serializer
         self.cities_set = {city.name for city in cities_serializer.get_all_cities()}
