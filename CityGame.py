@@ -4,10 +4,24 @@ from dataclasses import dataclass, field
 from typing import List, Set
 
 class JsonFile:
-    def __init__(self, file_path):
+    """
+    Класс для обработки JSON файла.
+    """
+
+    def __init__(self, file_path: str):
+        """
+        Инициализатор класса JsonFile.
+
+        :param file_path: Путь к JSON файлу.
+        """
         self.file_path = file_path
 
     def read_data(self):
+        """
+        Функция для чтения данных из JSON файла.
+
+        :return: Данные из JSON файла или None в случае ошибки.
+        """
         try:
             with open(self.file_path, "r", encoding="utf-8") as file:
                 data = json.load(file)
@@ -20,6 +34,11 @@ class JsonFile:
             return None
 
     def write_data(self, data):
+        """
+        Функция для записи данных в JSON файл.
+
+        :param data: Данные для записи в JSON файл.
+        """
         try:
             with open(self.file_path, "w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
@@ -28,6 +47,9 @@ class JsonFile:
 
 @dataclass
 class City:
+    """
+    Дата-класс для хранения информации о городах в игре.
+    """
     name: str
     population: int
     subject: str
@@ -36,7 +58,17 @@ class City:
     longitude: float
     is_used: bool = field(default=False)
 
-    def __init__(self, name, population, subject, district, coords, is_used=False, **kwargs):
+    def __init__(self, name: str, population: int, subject: str, district: str, coords: dict, is_used: bool = False, **kwargs):
+        """
+        Инициализатор класса City.
+
+        :param name: Название города.
+        :param population: Население города.
+        :param subject: Субъект федерации.
+        :param district: Район.
+        :param coords: Координаты города (широта и долгота).
+        :param is_used: Флаг, указывающий, использовался ли город в игре.
+        """
         self.name = name
         self.population = population
         self.subject = subject
@@ -46,7 +78,16 @@ class City:
         self.is_used = is_used
 
 class CitiesSerializer:
+    """
+    Класс для сериализации данных о городах.
+    """
+
     def __init__(self, city_data: List[dict]):
+        """
+        Инициализатор класса CitiesSerializer.
+
+        :param city_data: Список словарей с данными о городах.
+        """
         self.cities = []
         for city in city_data:
             try:
@@ -56,16 +97,35 @@ class CitiesSerializer:
                 print(f"Ошибка: {e}")
 
     def get_all_cities(self) -> List[City]:
+        """
+        Возвращает список всех городов.
+
+        :return: Список объектов City.
+        """
         return self.cities
 
 class CityGame:
-    def __init__(self, cities_serializer):
+    """
+    Класс для управления игрой "Города".
+    """
+
+    def __init__(self, cities_serializer: CitiesSerializer):
+        """
+        Инициализатор класса CityGame.
+
+        :param cities_serializer: Сериализатор данных о городах.
+        """
         self.cities_serializer = cities_serializer
         self.cities_set = {city.name for city in cities_serializer.get_all_cities()}
         self.bad_letters = self.calculate_bad_letters()
         self.computer_city = ''
 
     def calculate_bad_letters(self) -> Set[str]:
+        """
+        Вычисляет набор "плохих" букв, на которые нельзя заканчивать город.
+
+        :return: Набор "плохих" букв.
+        """
         bad_letters = set()
         sym_lower_set = {city.name[-1].lower() for city in self.cities_serializer.get_all_cities()}
         cities_set = {city.name for city in self.cities_serializer.get_all_cities()}
@@ -85,10 +145,19 @@ class CityGame:
         return bad_letters
 
     def start_game(self):
+        """
+        Начинает игру.
+        """
         print("Игра началась!")
         self.computer_turn()
 
-    def human_turn(self, city_input: str):
+    def human_turn(self, city_input: str) -> bool:
+        """
+        Обрабатывает ход человека.
+
+        :param city_input: Название города, введенное человеком.
+        :return: True, если ход успешен, иначе False.
+        """
         if city_input not in self.cities_set:
             print('Такого города нет. Человек проиграл.')
             return False
@@ -103,6 +172,11 @@ class CityGame:
         return True
 
     def computer_turn(self, human_city: str = ''):
+        """
+        Обрабатывает ход компьютера.
+
+        :param human_city: Название города, введенное человеком.
+        """
         if not human_city:
             # Если human_city пустой, выбираем случайный город
             self.computer_city = random.choice(list(self.cities_set))
@@ -120,26 +194,50 @@ class CityGame:
                 return
         print('Компьютер проиграл.')
 
-    def check_game_over(self):
+    def check_game_over(self) -> bool:
+        """
+        Проверяет, закончена ли игра.
+
+        :return: True, если игра закончена, иначе False.
+        """
         if not self.cities_set:
             print('Игра закончена. Победил человек.')
             return True
         return False
 
     def save_game_state(self):
-        # Метод для сохранения состояния игры, если необходимо
+        """
+        Метод для сохранения состояния игры, если необходимо.
+        """
         pass
 
 class GameManager:
+    """
+    Класс для управления игровым процессом.
+    """
+
     def __init__(self, json_file: JsonFile, cities_serializer: CitiesSerializer, city_game: CityGame):
+        """
+        Инициализатор класса GameManager.
+
+        :param json_file: Объект JsonFile для работы с JSON файлом.
+        :param cities_serializer: Сериализатор данных о городах.
+        :param city_game: Объект CityGame для управления игрой.
+        """
         self.json_file = json_file
         self.cities_serializer = cities_serializer
         self.city_game = city_game
 
     def __call__(self):
+        """
+        Запускает игру.
+        """
         self.run_game()
 
     def run_game(self):
+        """
+        Основной цикл игры.
+        """
         self.city_game.start_game()
         while True:
             human_city = input('Введите город: ')
@@ -150,6 +248,9 @@ class GameManager:
         self.display_game_result()
 
     def display_game_result(self):
+        """
+        Отображает результат игры.
+        """
         print("Игра завершена.")
 
 if __name__ == "__main__":
